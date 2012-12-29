@@ -1,0 +1,105 @@
+telnet 192.168.1.2 8102
+
+Name	Command	Return string
+
+== Query ==
+
+Power Status	?PWR	PWR2: Off (network standby), PWR1: Off (cold standby), PWR0: On
+Get Input Function	?FN	FN01: CD, FN02: Tuner, FN04: DVD, FN05: TV, FN06: SAT/CBL, FN10: Video, FN15: DVR/BDR, FN17: iPod/USB, FN25: BD, FN33: ADAPTER PORT, FN38: INTERNET RADIO, FN41: PANDORA, FN44: MEDIA SERVER, FN45: FAVORITES, FN46: AirPlay, FN47: DMR, FN49: GAME
+Get Product Info	?RGD	RGD<001><VSX-1022/CUXESM> (<generaton><model name>)
+Get Network Standby Mode	?RGC	RGC0: Network standby on, RGC1: Network standby off (check this)
+Get Input Info	?RGF	RGF0110112000100002020000000100000001000010010011110100000000000000	
+Get Mute Status	?MUT	MUT1: mute off, MUT0: mute on
+Get Volume	?VOL	VOLNNN (where NNN is the volume padded with zeros)  [000-161]
+Get Screen Info	?GAP	GBP (Screen Info Max Num List), GCP (Screen Information), GDP (List And Line Information), GEP*n (Display Information)
+Get iPod Function Info	?ICA	ICA0: iPod off, ICA1: iPod on
+
+
+== Actions ==
+
+* note: Airplay (FN46) and DMR (FN47) inputs cannot be selected directly
+Power On	PO	FN10, PWR0, MUT1 (indicates the selected function, power status, and mute status)
+Power Off	PF	PWR2 || PWR1
+Volumne Up	VU	returns ?VOL [000-161]
+Volume Down	VD	returns ?VOL [000-161]
+Mute On	MO	MUT0
+Mute Off	MF	MUT1
+Change Listening Mode: Auto/Direct	0005SR	N/A
+Change Listening Mode: ALC/Standard	0010SR	N/A
+Change Listening Mode: Advanced Surround	0100SR	N/A
+Input function up	FU
+Input function down	FD
+CD	01FN	returns ?FN
+Tuner (control)	02FN	returns ?FN
+DVD	04FN	returns ?FN
+TV	05FN	returns ?FN
+Sat/Cable	06FN	returns ?FN
+Video	10FN	returns ?FN
+DVR/BR	15FN	returns ?FN
+iPod/USB (control)	17FN	returns ?ICA, ?FN, ?GAP
+BD	25FN	returns ?FN
+Adapter Port	33FN	returns ?FN
+Internet Radio (control)	38FN	returns ?FN, ?GAP
+Pandora (control)	41FN	returns ?FN, ?GAP
+Media Server (control)	44FN	returns ?FN, ?GAP
+Favorites (control)	45FN	returns ?FN, ?GAP
+
+
+== Tuner Presets ==
+Tuner preset [01-30]	NNPR	where NN is 01-30
+
+
+== Network Media Info ==
+
+Details:
+?GAP provides information that mirrors the on-screen data.  The resulting data 
+is organized into several sections: GBP, GCP, GDP, and GEP entries.
+
+GBPNN, where:
+	NN is a zero padded count of displayed GEP entries
+	
+GCPWWXY0Z0"SCREEN_NAME_LABEL", where:
+	WW is a zero-padded value representing the screen type [00-99]
+	X is the hierarchical list update flag [0/1]
+	Y is the top menu key enable flag [0/1]
+	Z is the return key enable flag [0/1]
+	SCREEN_NAME_LABEL is the label for the current screen
+	
+GDPAAAAABBBBBCCCCC, where:
+	AAAAA is a zero-padded start index of the displayed information in the GEP entries
+	BBBBB is a zero-padded end index of the displayed information in the GEP entries
+	CCCCC is a zero-padded count of all GEP entries
+
+
+For example:
+	GBP08 would indicate there are 8 displayed GEP entries.
+	
+	GCP0110010"Your Stations" would indicate screen type '01', hierarchical list update flag=1,
+top menu flag=0, and return key enable flag=1, with a display name of "Your Stations".
+
+	GDP000010000800031 would indicate GEP entries 1 through 8 of 31 total entries.
+
+
+== Navigation Keys ==
+
+Return Key	31PB
+Enter Key	30PB
+Skip Reverse Key	12PB
+Stop Key	20PB
+Skip Forward Key	13PB
+Pause Key	11PB
+Play Key	10PB
+
+Select List Item	NNNNNGHP	where N is a 5 digit zero-padded number indicating the item index to select
+Scroll Page	NNNNNGGP	where N is a 5 digit zero-padded number representing the item index to scroll to
+
+
+
+== E.g. Navigating Pandora Stations ==
+Selection Pandora input	41FN
+Show display	?GAP
+Move up one level	31PB
+Show display	?GAP
+Select item #2	00002GHP
+Enter key	30PB
+Show display	?GAP
